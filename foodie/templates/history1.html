@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto space-y-8">
+  <!-- Graph -->
+  <div class="bg-white rounded-xl p-6 card-shadow">
+    <h2 class="text-xl font-bold mb-4">Calories Over Time</h2>
+    <canvas id="calorieChart"></canvas>
+  </div>
+
+  <!-- History Log (unchanged) -->
+  <div class="bg-white rounded-xl p-8 card-shadow">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Analysis History</h1>
+
+    {% if not history %}
+      <p class="text-gray-600">No previous analyses found</p>
+    {% else %}
+      <div class="space-y-4">
+        {% for entry in history %}
+        <div class="border rounded-lg p-4">
+          <div class="flex justify-between mb-2">
+            <span class="text-sm text-gray-500">{{ entry.timestamp }}</span>
+            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              {{ entry.diet_type.replace('_', ' ').title() }}
+            </span>
+          </div>
+          <div class="grid grid-cols-6 gap-4 text-center">
+            <div><div class="text-gray-600">Calories</div><div class="font-bold">{{ entry.calories|round|int }}</div></div>
+            <div><div class="text-gray-600">Protein</div><div class="font-bold">{{ entry.protein|round(1) }}g</div></div>
+            <div><div class="text-gray-600">Carbs</div><div class="font-bold">{{ entry.carbs|round(1) }}g</div></div>
+            <div><div class="text-gray-600">Fat</div><div class="font-bold">{{ entry.fat|round(1) }}g</div></div>
+            <div><div class="text-gray-600">Sugar</div><div class="font-bold">{{ entry.sugar|round(1) }}g</div></div>
+            <div><div class="text-gray-600">Fiber</div><div class="font-bold">{{ entry.fiber|round(1) }}g</div></div>
+          </div>
+          <div class="mt-2 flex space-x-2">
+            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+              High Calorie: {{ 'Yes' if entry.high_calorie else 'No' }}
+            </span>
+            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+              Sugar Rich: {{ 'Yes' if entry.sugar_rich else 'No' }}
+            </span>
+            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              Fiber Rich: {{ 'Yes' if entry.fiber_rich else 'No' }}
+            </span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const data = {{ history|tojson }};
+  const labels = data.map(h => h.timestamp);
+  const calories = data.map(h => Math.round(h.calories));
+
+  new Chart(document.getElementById('calorieChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Calories',
+        data: calories,
+        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(59,130,246,0.2)',
+        tension: 0.3,
+        pointRadius: 5
+      }]
+    },
+    options: {
+      scales: {
+        x: { title: { display: true, text: 'Timestamp' }},
+        y: { beginAtZero: true, title: { display: true, text: 'Calories' }}
+      }
+    }
+  });
+</script>
+{% endblock %}

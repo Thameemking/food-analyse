@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-xl p-8 card-shadow">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Food Analysis</h1>
+        
+        <form method="POST" action="/">
+            <div id="food-fields" class="mb-4">
+                {% for food in foods %}
+                <div class="flex gap-2 mb-2">
+                    <input type="text" name="food_name[]" value="{{ food }}"
+                        class="flex-1 p-2 border rounded-lg" 
+                        placeholder="Enter food item">
+                    <button type="button" onclick="removeField(this)" 
+                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                        ×
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="flex gap-2">
+                <button type="button" onclick="addFoodField()"
+                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    Add Food +
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                    Analyze
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

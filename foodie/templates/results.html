@@ -1,0 +1,183 @@
+<!-- results.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-12">
+
+  <!-- 1. Detected Diet Card (full-width, prominent) -->
+  <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col items-center justify-center h-48">
+    <div class="text-5xl font-extrabold text-blue-600">{{ diet_type }}</div>
+    <div class="text-gray-500 text-lg mt-2">Detected Diet</div>
+  </div>
+
+  <!-- 2. Nutrition Summary Cards (6 cards) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+    <!-- Calories -->
+    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col items-center h-40">
+      <div class="text-5xl font-bold text-blue-600">{{ nutrition.calories|round|int }}</div>
+      <div class="text-gray-500 mt-1">Total Calories</div>
+    </div>
+    <!-- Protein -->
+    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col items-center h-40">
+      <div class="text-5xl font-bold text-indigo-600">{{ nutrition.protein|round(1) }}g</div>
+      <div class="text-gray-500 mt-1">Protein</div>
+    </div>
+    <!-- Carbs -->
+    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col items-center h-40">
+      <div class="text-5xl font-bold text-green-600">{{ nutrition.carbs|round(1) }}g</div>
+      <div class="text-gray-500 mt-1">Carbs</div>
+    </div>
+    <!-- Fat -->
+    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col items-center h-40">
+      <div class="text-5xl font-bold text-yellow-500">{{ nutrition.fat|round(1) }}g</div>
+      <div class="text-gray-500 mt-1">Fat</div>
+    </div>
+    <!-- Sugar -->
+    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col items-center h-40">
+      <div class="text-5xl font-bold text-red-500">{{ nutrition.sugar|round(1) }}g</div>
+      <div class="text-gray-500 mt-1">Sugar</div>
+    </div>
+    <!-- Fiber -->
+    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col items-center h-40">
+      <div class="text-5xl font-bold text-gray-700">{{ nutrition.fiber|round(1) }}g</div>
+      <div class="text-gray-500 mt-1">Fiber</div>
+    </div>
+  </div>
+
+  <!-- 3. Charts Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- A. Nutrient Distribution Radar -->
+    <div class="bg-white rounded-2xl p-6 card-shadow">
+      <h3 class="text-xl font-semibold mb-4">Nutrient Distribution</h3>
+      <canvas id="nutrientRadarChart"></canvas>
+    </div>
+    <!-- B. Calories by Macro Pie -->
+    <div class="bg-white rounded-2xl p-6 card-shadow">
+      <h3 class="text-xl font-semibold mb-4">Calories by Macro</h3>
+      <canvas id="caloriePieChart"></canvas>
+    </div>
+    <!-- C. Absolute Macronutrients Bar -->
+    <div class="bg-white rounded-2xl p-6 card-shadow">
+      <h3 class="text-xl font-semibold mb-4">Absolute Macronutrients</h3>
+      <canvas id="nutrientBarChart"></canvas>
+    </div>
+    <!-- D. Calories per Food Item -->
+    <div class="bg-white rounded-2xl p-6 card-shadow">
+      <h3 class="text-xl font-semibold mb-4">Calories per Food Item</h3>
+      <canvas id="foodBarChart"></canvas>
+    </div>
+  </div>
+
+  <!-- 4. Flags -->
+  <div class="grid grid-cols-3 gap-8">
+    <div class="bg-white rounded-2xl p-8 card-shadow text-center">
+      <div class="text-gray-500 mb-2">High Calorie?</div>
+      <div class="text-3xl font-bold text-blue-600">{{ high_cal }}</div>
+    </div>
+    <div class="bg-white rounded-2xl p-8 card-shadow text-center">
+      <div class="text-gray-500 mb-2">Sugar Rich?</div>
+      <div class="text-3xl font-bold text-red-500">{{ sugar_rich }}</div>
+    </div>
+    <div class="bg-white rounded-2xl p-8 card-shadow text-center">
+      <div class="text-gray-500 mb-2">Fiber Rich?</div>
+      <div class="text-3xl font-bold text-gray-700">{{ fiber_rich }}</div>
+    </div>
+  </div>
+
+  <!-- 5. New Analysis Button -->
+  <div class="text-center">
+    <a href="/" class="px-6 py-3 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition">
+      🔄 New Analysis
+    </a>
+  </div>
+
+</div>
+
+<script>
+  // Radar chart
+  new Chart(document.getElementById('nutrientRadarChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Protein','Carbs','Fat','Sugar','Fiber'],
+      datasets: [{
+        label: 'Grams',
+        data: [
+          {{ nutrition.protein|round(1) }},
+          {{ nutrition.carbs|round(1) }},
+          {{ nutrition.fat|round(1) }},
+          {{ nutrition.sugar|round(1) }},
+          {{ nutrition.fiber|round(1) }}
+        ],
+        fill: true,
+        backgroundColor: 'rgba(59,130,246,0.2)',
+        borderColor: '#3B82F6',
+        pointBackgroundColor: '#3B82F6'
+      }]
+    },
+    options: { responsive: true, scales: { r: { beginAtZero: true } } }
+  });
+
+  // Calorie pie
+  new Chart(document.getElementById('caloriePieChart'), {
+    type: 'pie',
+    data: {
+      labels: ['Protein','Carbs','Fat'],
+      datasets: [{
+        data: [
+          {{ (nutrition.protein*4)|round }},
+          {{ (nutrition.carbs*4)|round }},
+          {{ (nutrition.fat*9)|round }}
+        ],
+        backgroundColor: ['#6366F1','#10B981','#FBBF24']
+      }]
+    },
+    options: { responsive: true }
+  });
+
+  // Macro bar
+  new Chart(document.getElementById('nutrientBarChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Protein','Carbs','Fat','Sugar','Fiber'],
+      datasets: [{
+        label: 'Grams',
+        data: [
+          {{ nutrition.protein|round(1) }},
+          {{ nutrition.carbs|round(1) }},
+          {{ nutrition.fat|round(1) }},
+          {{ nutrition.sugar|round(1) }},
+          {{ nutrition.fiber|round(1) }}
+        ],
+        backgroundColor: ['#6366F1','#10B981','#FBBF24','#EF4444','#6B7280']
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'Grams' } }
+      }
+    }
+  });
+
+  // Per-food calories
+  new Chart(document.getElementById('foodBarChart'), {
+    type: 'bar',
+    data: {
+      labels: [{% for f in nutrition.foods %}'{{ f.name }}',{% endfor %}],
+      datasets: [{
+        label: 'Calories',
+        data: [{% for f in nutrition.foods %}{{ f.calories }},{% endfor %}],
+        backgroundColor: '#3B82F6'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 } },
+        y: { beginAtZero: true, title: { display: true, text: 'kcal' } }
+      }
+    }
+  });
+</script>
+{% endblock %}
